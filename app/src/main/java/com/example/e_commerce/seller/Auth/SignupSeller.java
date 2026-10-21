@@ -54,9 +54,9 @@ public class SignupSeller extends AppCompatActivity {
         authViewModel.getStatusSuccess().observe(this, success -> {
             if (success.equals(Boolean.TRUE)){
                 String email = et_email.getText().toString().trim();
-                int userId = DatabaseHelper.getInstance(this).getUserId(email);
+                int sellerId = DatabaseHelper.getInstance(this).getSellerId(email);
                 SharedPreferences pref = getSharedPreferences("session", MODE_PRIVATE);
-                pref.edit().putInt("sellerId",userId).apply();
+                pref.edit().putInt("sellerId",sellerId).apply();
                 Intent i = new Intent(this, MainActivity.class);
                 startActivity(i);
                 finish();

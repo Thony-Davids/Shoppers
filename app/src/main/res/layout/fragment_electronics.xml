@@ -23,7 +23,7 @@
     <GridView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:id="@+id/all_gv"
+        android:id="@+id/electronics_gv"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/electronics_header"
         app:layout_constraintEnd_toEndOf="parent"

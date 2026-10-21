@@ -55,8 +55,10 @@ public class ShopFragment extends Fragment {
         product_add.setOnClickListener(v->{
             SharedPreferences pref = requireActivity().getSharedPreferences("session", MODE_PRIVATE);
             int sellerId = pref.getInt("sellerId", -1);
-            if(sellerId < 0){
-                Toast.makeText(requireContext(), "Seller id not found, please log in again", Toast.LENGTH_SHORT).show();
+
+            if(sellerId == -1){
+                Toast.makeText(requireContext(), "invalid seller ID, please log in again", Toast.LENGTH_SHORT).show();
+                return;
             }
 
             Intent intent = new Intent(requireContext(), AddProduct.class);
