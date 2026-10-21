@@ -1,13 +1,19 @@
 package com.example.e_commerce.seller;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -20,6 +26,12 @@ import com.example.e_commerce.seller.db.DatabaseHelper;
 import com.example.e_commerce.seller.db.ViewModels.ProductViewModel;
 import com.google.android.material.button.MaterialButton;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class AddProduct extends AppCompatActivity {
 
     private EditText et_name;
@@ -29,7 +41,11 @@ public class AddProduct extends AppCompatActivity {
     private Spinner product_category;
     MaterialButton button_save;
     MaterialButton button_back;
+    MaterialButton button_select;
     ProductViewModel productViewModel;
+    private ImageView iv_product_preview;
+    private String imagePath = "";
+    private ActivityResultLauncher<String> imagePicker;
 
 
     @Override
@@ -47,6 +63,32 @@ public class AddProduct extends AppCompatActivity {
         product_category = findViewById(R.id.spinner_product_category);
         button_save = findViewById(R.id.btn_save_product);
         button_back = findViewById(R.id.btn_back);
+        iv_product_preview = findViewById(R.id.iv_product_preview);
+        button_select = findViewById(R.id.btn_select_image);
+
+        imagePicker = registerForActivityResult(new ActivityResultContracts.GetContent(), uri->{
+            if(uri != null){
+                try {
+                    imagePath = copyImageToInternalStorage(uri);
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+
+                    if(bitmap != null){
+                        iv_product_preview.setImageBitmap(bitmap);
+                    }
+                    else{
+                        imagePath = "";
+                        Toast.makeText(this, "unable to load image", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (IOException e){
+                    imagePath = "";
+                    Toast.makeText(this, "Failed to select image", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        button_select.setOnClickListener(v->{
+            imagePicker.launch("image/*");
+        });
 
         String[] categories = {
                 "Food",
@@ -75,13 +117,18 @@ public class AddProduct extends AppCompatActivity {
                 return;
             }
 
+            if(imagePath.isEmpty()){
+                Toast.makeText(this, "Please select an image", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             productViewModel.addProduct(
                     name,
                     description,
                     price,
                     quantity,
                     category,
-                    "default",
+                    imagePath,
                     sellerId);
         });
 
@@ -106,5 +153,30 @@ public class AddProduct extends AppCompatActivity {
 
     }
 
+    private String copyImageToInternalStorage(Uri uri)throws IOException {
+        File imageDirectory = new File(getFilesDir(), "product_images");
+
+        if(!imageDirectory.exists() && !imageDirectory.mkdirs()){
+            throw new IOException("could not create image directory");
+        }
+
+        File destination = new File(imageDirectory, "product_"+System.currentTimeMillis()+".jpg");
+
+        try (InputStream input = getContentResolver().openInputStream(uri);
+             OutputStream output = new FileOutputStream(destination)){
+
+            if(input == null){
+                throw new IOException("could not open image");
+            }
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            while ((bytesRead = input.read(buffer)) != -1){
+                output.write(buffer, 0, bytesRead);
+            }
+        }
+
+        return destination.getAbsolutePath();
+    }
 
 }

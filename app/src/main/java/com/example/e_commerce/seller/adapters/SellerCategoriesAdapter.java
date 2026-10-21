@@ -1,6 +1,8 @@
 package com.example.e_commerce.seller.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import androidx.annotation.Nullable;
 import com.example.e_commerce.R;
 import com.example.e_commerce.seller.datamodel.Product;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +61,29 @@ public class SellerCategoriesAdapter extends ArrayAdapter<Product> {
         else{
             myViewHolder = (MyViewHolder) convertView.getTag();
         }
-        myViewHolder.product_image.setImageResource(R.drawable.ic_launcher_background);
+
+        String imagePath = product.getImg();
+
+        if (imagePath != null
+                && !imagePath.isEmpty()
+                && new File(imagePath).exists()) {
+
+            Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+
+            if (bitmap != null) {
+                myViewHolder.product_image.setImageBitmap(bitmap);
+            } else {
+                myViewHolder.product_image.setImageResource(
+                        R.drawable.ic_launcher_background
+                );
+            }
+
+        } else {
+            myViewHolder.product_image.setImageResource(
+                    R.drawable.ic_launcher_background
+            );
+        }
+
         myViewHolder.product_name.setText(product.getName());
         myViewHolder.product_price.setText(String.valueOf(product.getPrice()));
         return convertView;
